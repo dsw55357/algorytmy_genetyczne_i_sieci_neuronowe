@@ -179,33 +179,39 @@ def mutate(chromosome, pm=PM):
     return mutated_chromosome
 
 
+# Główna pętla Algorytmu Genetycznego
+# pełna pętla GA (inicjalizacja > ocena > selekcja > krzyżowanie > mutacja > zastąpienie) + elityzm + wczesne zatrzymanie przez stagnację.
+#
 def run_ga(
-    items,
-    max_weight,
-    pop_size=POP_SIZE,
-    max_generations=MAX_GENERATIONS,
+    items, # lista przedmiotów (słowniki z id, value, weight)
+    max_weight, # maksymalna waga plecaka
+    pop_size=POP_SIZE, # rozmiar populacji
+    max_generations=MAX_GENERATIONS,# maksymalna liczba generacji (iteracji)
     pc=PC,
     pm=PM,
-    penalty_factor=300,
-    stagnation_limit=STAGNATION_LIMIT,
+    penalty_factor=300, # siła kary za przekroczenie wagi
+    stagnation_limit=STAGNATION_LIMIT, # liczba generacji bez poprawy
 ):
     """
     Główna pętla Algorytmu Genetycznego.
     Zwraca najlepsze rozwiązanie oraz historię fitness.
     """
     item_count = len(items)
+    # Inicjalizacja populacji i zmiennych śledzących
     population = initialize_population(pop_size, item_count)
 
     best_chromosome = None
-    best_fitness = -float('inf')
+    best_fitness = -float('inf') # bardzo niska wartość początkowa
     best_fitness_generation = 0
-    best_fitness_history = []
-    stagnation_counter = 0
+    best_fitness_history = [] # będzie trzymać najlepszy fitness w kolejnych generacjach (do wykresu)
+    stagnation_counter = 0 # liczy, ile generacji nie poprawiło global best ;-)
 
     # Zakładamy, że jeśli nie będzie wcześniejszego zatrzymania,
     # ostatnia generacja to max_generations - 1
     last_generation = max_generations - 1
 
+    # Główna pętla GA
+    # każda iteracja to jedna generacja
     for generation in range(max_generations):
         # 1. Ocena populacji
         fitness_values = [
@@ -213,20 +219,21 @@ def run_ga(
             for c in population
         ]
 
-        current_best_fitness = max(fitness_values)
-        current_best_index = fitness_values.index(current_best_fitness)
+        # Wyszukanie najlepszego osobnika w tej generacji
+        current_best_fitness = max(fitness_values) # najlepszy fitness w bieżącej generacji
+        current_best_index = fitness_values.index(current_best_fitness) # indeks najlepszego osobnika w bieżącej generacji
 
-        # Aktualizacja najlepszego osobnika
+        # Aktualizacja najlepszego osobnika, najlepszego rozwiązania globalnego
         if current_best_fitness > best_fitness:
-            best_fitness = current_best_fitness
-            best_chromosome = population[current_best_index][:]
-            best_fitness_generation = generation
-            stagnation_counter = 0
+            best_fitness = current_best_fitness # aktualizacja global best
+            best_chromosome = population[current_best_index][:] # kopiujemy najlepszego osobnika
+            best_fitness_generation = generation # zapamiętujemy generację, w której znaleziono global best
+            stagnation_counter = 0 # resetujemy licznik stagnacji
         else:
-            stagnation_counter += 1
+            stagnation_counter += 1 # brak poprawy, zwiększamy licznik stagnacji
 
         # Warunek wczesnego zatrzymania (stagnacja)
-        if stagnation_counter >= stagnation_limit:
+        if stagnation_counter >= stagnation_limit: # Jeśli znaleziono coś lepszego niż dotychczasowe global best
             last_generation = generation
             print(
                 f"Zatrzymanie w generacji {generation}: "
@@ -237,30 +244,37 @@ def run_ga(
         # Zapis historii najlepszego fitness w tej generacji
         best_fitness_history.append(current_best_fitness)
 
-        # 2. Selekcja
+        # 2. Selekcja - ruletka
         selected_population = selection_roulette(population, fitness_values)
 
         # 3–4. Krzyżowanie + mutacja, z elityzmem
+        # Tworzenie nowej populacji
         new_population = []
 
         # Gwarantowany elityzm – najlepszy z całej historii
         if best_chromosome:
+            # Najlepszy osobnik z całej historii na pewno przechodzi do nowej populacji
+            # To chroni przed utratą najlepszego rozwiązania przez losowe operatory
             new_population.append(best_chromosome[:])
 
+        # Tworzenie nowych osobników aż do osiągnięcia rozmiaru populacji
         while len(new_population) < pop_size:
             parent1 = random.choice(selected_population)
             parent2 = random.choice(selected_population)
 
+            # Krzyżowanie z prawdopodobieństwem pc
             child1, child2 = crossover(parent1, parent2, pc=pc)
 
+            # Mutacja genów potomków z prawdopodobieństwem pm per gen
             child1 = mutate(child1, pm=pm)
             child2 = mutate(child2, pm=pm)
 
+            # Dodanie dzieci do nowej populacji aż osiągniesz pop_size
             new_population.append(child1)
             if len(new_population) < pop_size:
                 new_population.append(child2)
 
-        # 5. Zastąpienie populacji
+        # 5. Zastąpienie populacji - nadpisujemy populację nową
         population = new_population[:pop_size]
 
     # --- Wyniki końcowe ---
@@ -643,7 +657,7 @@ if __name__ == "__main__":
 
 
 '''
-Klasycznym GA:
+Klasyczny GA:
 
 Inicjalizacja populacji
 Ocena przystosowania
