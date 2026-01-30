@@ -142,16 +142,23 @@ def selection_roulette(population, fitness_values):
     # i zwracamy nową populację po selekcji
     return new_population
 
-
+# Zastosowano krzyżowanie jednopunktowe, które dla każdej pary rodziców jest wykonywane z prawdopodobieństwem 
+# PC, a w przypadku braku krzyżowania potomkowie są kopiami rodziców
+# parent1, parent2 – dwa chromosomy rodziców (listy genów)
+# pc – prawdopodobieństwo krzyżowania
 def crossover(parent1, parent2, pc=PC):
     """Krzyżowanie jednopunktowe."""
+    # Długość chromosomu = liczba genów = liczba przedmiotów
     chromosome_length = len(parent1)
+    # Sprawdzamy, czy przeprowadzić krzyżowanie
     if random.random() < pc:
-        point = random.randint(1, chromosome_length - 1)
+        # Wybór punktu krzyżowania
+        point = random.randint(1, chromosome_length - 1) # Punkt jest losowany z przedziału [1, długość-1], aby uniknąć pustych potomków
+        # Tworzenie potomków przez wymianę genów po punkcie krzyż
         child1 = parent1[:point] + parent2[point:]
         child2 = parent2[:point] + parent1[point:]
         return child1, child2
-    else:
+    else: # Brak krzyżowania, potomkowie to kopie rodziców
         return parent1[:], parent2[:]
 
 
