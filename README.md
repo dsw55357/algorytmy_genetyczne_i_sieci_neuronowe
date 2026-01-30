@@ -1,0 +1,1 @@
+# algorytmy_genetyczne_i_sieci_neuronowe
