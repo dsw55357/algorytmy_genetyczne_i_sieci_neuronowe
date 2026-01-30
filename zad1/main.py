@@ -161,15 +161,21 @@ def crossover(parent1, parent2, pc=PC):
     else: # Brak krzyżowania, potomkowie to kopie rodziców
         return parent1[:], parent2[:]
 
-
+# Zastosowano mutację bitową, w której każdy gen chromosomu mutuje niezależnie z prawdopodobieństwem
+# PM, polegając na zamianie 0 na 1 lub 1 na 0.
+# chromosome – chromosom do mutacji (lista genów)
+# pm – prawdopodobieństwo mutacji
 def mutate(chromosome, pm=PM):
     """Mutacja bitowa."""
+    # Przygotowanie nowego chromosomu
     mutated_chromosome = []
+
+    # Iteracja przez każdy gen w chromosomie, a mutacja jest per gen
     for gene in chromosome:
         if random.random() < pm:
-            mutated_chromosome.append(1 - gene)  # Zamiana 0 ↔ 1
+            mutated_chromosome.append(1 - gene)  # Zamiana 0 na 1 lub 1 na 0
         else:
-            mutated_chromosome.append(gene)
+            mutated_chromosome.append(gene) # Gen pozostaje bez zmiany
     return mutated_chromosome
 
 
